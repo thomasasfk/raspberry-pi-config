@@ -1,0 +1,10 @@
+# Ignore environment files
+.env
+# Ignore volume data
+docker/volumes/*
+# Ignore backup files
+backups/*
+# Ignore logs
+*.log
+# Ignore system files
+.DS_Store

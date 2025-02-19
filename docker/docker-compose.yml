@@ -1,0 +1,22 @@
+version: '3'
+services:
+  homeassistant:
+    container_name: homeassistant
+    image: ghcr.io/home-assistant/home-assistant:stable
+    privileged: true
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ./volumes/homeassistant:/config
+    network_mode: host
+
+  octoprint:
+    container_name: octoprint
+    image: octoprint/octoprint
+    restart: unless-stopped
+    environment:
+      - ENABLE_MJPG_STREAMER=true
+    volumes:
+      - ./volumes/octoprint:/octoprint
+    network_mode: "host"
