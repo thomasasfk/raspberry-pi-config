@@ -4,7 +4,6 @@ sudo apt update
 sudo apt install -y git docker.io docker-compose
 sudo usermod -aG docker $USER
 
-mkdir -p docker/volumes/{homeassistant,octoprint}
 if [ ! -f .env ]; then
     echo "TZ=UTC" > .env
 fi
