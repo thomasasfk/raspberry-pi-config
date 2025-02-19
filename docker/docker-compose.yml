@@ -10,7 +10,7 @@ services:
     volumes:
       - ./volumes/homeassistant:/config
     ports:
-      - "8123:8123"  # Home Assistant web interface
+      - "8000:8123"  # Home Assistant web interface
 
   octoprint:
     container_name: octoprint
@@ -21,8 +21,8 @@ services:
     volumes:
       - ./volumes/octoprint:/octoprint
     ports:
-      - "5000:5000"  # OctoPrint web interface
-      - "8080:8080"  # MJPG-Streamer (if enabled)
+      - "8001:5000"  # OctoPrint web interface
+      - "8002:8080"  # MJPG-Streamer (if enabled)
 
   pihole:
     container_name: pihole
@@ -33,11 +33,11 @@ services:
       - ./volumes/pihole/etc-pihole:/etc/pihole
       - ./volumes/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
     ports:
-      - "53:53/tcp"     # DNS
-      - "53:53/udp"     # DNS
-      - "67:67/udp"     # DHCP
-      - "80:80"         # Pi-hole web interface
-      - "443:443"       # Pi-hole web interface (HTTPS)
+      - "53:53/tcp"     # DNS (keeping standard port for functionality)
+      - "53:53/udp"     # DNS (keeping standard port for functionality)
+      - "67:67/udp"     # DHCP (keeping standard port for functionality)
+      - "8003:80"       # Pi-hole web interface
+      - "8004:443"      # Pi-hole web interface (HTTPS)
     restart: unless-stopped
 
   rutorrent:
@@ -53,9 +53,9 @@ services:
       - ./volumes/rutorrent/data:/data
       - ./volumes/rutorrent/downloads:/downloads
     ports:
-      - "8080:8080"  # WebUI
-      - "50000:50000"  # DHT and incoming connections
-      - "6881:6881/udp"  # DHT port (UDP)
+      - "8005:8080"    # WebUI
+      - "8006:50000"   # DHT and incoming connections
+      - "8007:6881/udp"  # DHT port (UDP)
     restart: unless-stopped
 
   portainer:
@@ -65,6 +65,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./volumes/portainer:/data
     ports:
-      - "9000:9000"    # Web interface
-      - "8000:8000"    # Edge agent API
+      - "8008:9000"    # Web interface
+      - "8009:8000"    # Edge agent API
     restart: unless-stopped
