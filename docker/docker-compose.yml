@@ -9,7 +9,8 @@ services:
       - TZ=${TZ:-UTC}
     volumes:
       - ./volumes/homeassistant:/config
-    network_mode: host
+    ports:
+      - "8123:8123"  # Home Assistant web interface
 
   octoprint:
     container_name: octoprint
@@ -19,4 +20,48 @@ services:
       - ENABLE_MJPG_STREAMER=true
     volumes:
       - ./volumes/octoprint:/octoprint
-    network_mode: "host"
+    ports:
+      - "5000:5000"  # OctoPrint web interface
+      - "8080:8080"  # MJPG-Streamer (if enabled)
+
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    environment:
+      TZ: ${TZ:-UTC}
+    volumes:
+      - ./volumes/pihole/etc-pihole:/etc/pihole
+      - ./volumes/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+    ports:
+      - "53:53/tcp"     # DNS
+      - "53:53/udp"     # DNS
+      - "67:67/udp"     # DHCP
+      - "80:80"         # Pi-hole web interface
+      - "443:443"       # Pi-hole web interface (HTTPS)
+    restart: unless-stopped
+
+  transmission:
+    container_name: transmission
+    image: linuxserver/transmission
+    environment:
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - ./volumes/transmission/config:/config
+      - ./volumes/transmission/downloads:/downloads
+    ports:
+      - "9091:9091"    # Web interface
+      - "51413:51413"  # Peer listening port
+      - "51413:51413/udp"  # Peer listening port (UDP)
+    restart: unless-stopped
+
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./volumes/portainer:/data
+    ports:
+      - "9000:9000"    # Web interface
+      - "8000:8000"    # Edge agent API
+    restart: unless-stopped
