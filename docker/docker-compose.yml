@@ -48,12 +48,12 @@ services:
       - PGID=1000
       - TZ=UTC  # Set your timezone here
       - WEBUI_AUTH_METHOD=none  # Remove this line if you want authentication
-      - RUTORRENT_THEME=club-QuickBox  # Dark theme
     volumes:
       - ./volumes/rutorrent/data:/data
       - ./volumes/rutorrent/downloads:/downloads
     ports:
       - "8005:8080"    # WebUI
+      - "5000:5000"    # RPC2
       - "8006:50000"   # DHT and incoming connections
       - "8007:6881/udp"  # DHT port (UDP)
     restart: unless-stopped
