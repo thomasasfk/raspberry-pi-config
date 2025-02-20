@@ -14,14 +14,10 @@ sudo usermod -aG docker $USER && . ~/.bashrc
 
 # Samba setup
 sudo tee -a /etc/samba/smb.conf > /dev/null << EOL
-[DockerVolumes]
-path = $(pwd)/docker/volumes
-writeable = yes
-create mask = 0777
-directory mask = 0777
-public = no
-guest ok = no
-browseable = yes
+[homes]
+   writable = yes
+   create mask = 0644
+   directory mask = 0755
 EOL
 echo -e "$PASSWORD\n$PASSWORD" | sudo smbpasswd -s -a $USER
 sudo systemctl restart smbd nmbd
