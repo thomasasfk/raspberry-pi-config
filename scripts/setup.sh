@@ -13,12 +13,14 @@ wget -qO- https://astral.sh/uv/install.sh | sh
 sudo usermod -aG docker $USER && . ~/.bashrc
 
 # Samba setup
-sudo tee -a /etc/samba/smb.conf > /dev/null << EOL
+if ! grep -q "^\[homes\]" /etc/samba/smb.conf; then
+    sudo tee -a /etc/samba/smb.conf > /dev/null << EOL
 [homes]
    writable = yes
    create mask = 0644
    directory mask = 0755
 EOL
+fi
 echo -e "$PASSWORD\n$PASSWORD" | sudo smbpasswd -s -a $USER
 sudo systemctl restart smbd nmbd
 
