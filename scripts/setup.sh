@@ -1,20 +1,35 @@
 #!/bin/bash
+[ $EUID -eq 0 ] && echo "Don't run as root/sudo" && exit 1
 
-sudo apt update
-sudo apt install -y git docker.io docker-compose tmux
+# Environment and password setup
+[ ! -f .env ] && echo "TZ=UTC" > .env
+. .env
+[ -z "$PASSWORD" ] && read -sp "Enter password for network share: " PASSWORD && \
+    echo && echo "PASSWORD=$PASSWORD" >> .env
+
+# System setup
+sudo apt update && sudo apt install -y git docker.io docker-compose tmux samba samba-common-bin
 wget -qO- https://astral.sh/uv/install.sh | sh
-sudo usermod -aG docker $USER
+sudo usermod -aG docker $USER && . ~/.bashrc
 
-if [ ! -f .env ]; then
-    echo "TZ=UTC" > .env
-fi
+# Samba setup
+sudo tee -a /etc/samba/smb.conf > /dev/null << EOL
+[DockerVolumes]
+path = $(pwd)/docker/volumes
+writeable = yes
+create mask = 0777
+directory mask = 0777
+public = no
+guest ok = no
+browseable = yes
+EOL
+echo -e "$PASSWORD\n$PASSWORD" | sudo smbpasswd -s -a $USER
+sudo systemctl restart smbd nmbd
 
-. ~/.bashrc
-
-tmux new-session -d -s httpserver
-tmux send-keys -t httpserver 'cd www' C-m
-tmux send-keys -t httpserver 'uv run python -m http.server 7999' C-m
+# Services startup
+tmux has-session -t httpserver 2>/dev/null && tmux kill-session -t httpserver
+tmux new-session -d -s httpserver "cd www && uv run python -m http.server 7999"
 
 (cd docker && docker-compose up -d)
 
-tmux new-session -s dev
+tmux has-session -t dev 2>/dev/null && tmux attach -t dev || tmux new-session -s dev
