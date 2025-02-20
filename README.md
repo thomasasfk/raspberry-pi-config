@@ -2,10 +2,6 @@
 
 Configuration files and setup scripts for my Raspberry Pi setup.
 
-## Services
-- Home Assistant
-- OctoPrint
-
 ## Setup
 ```bash
 ./scripts/setup.sh
