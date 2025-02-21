@@ -8,3 +8,4 @@ backups/*
 *.log
 # Ignore system files
 .DS_Store
+.idea

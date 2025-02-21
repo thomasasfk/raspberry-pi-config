@@ -46,16 +46,17 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=UTC  # Set your timezone here
-      - WEBUI_AUTH_METHOD=none  # Remove this line if you want authentication
+      - TZ=UTC
+      - WEBUI_AUTH_METHOD=none
     volumes:
       - ./volumes/rutorrent/data:/data
       - ./volumes/rutorrent/downloads:/downloads
     ports:
-      - "8005:8080"    # WebUI
-      - "5000:5000"    # RPC2
-      - "8006:50000"   # DHT and incoming connections
-      - "8007:6881/udp"  # DHT port (UDP)
+      - "8005:8080"     # Web UI HTTP
+      - "8010:8000"    # SCGI external (mapped from internal 8000)
+      - "50000:50000"  # DHT and incoming connections
+      - "6881:6881"    # Standard BitTorrent port
+      - "6881:6881/udp"# UDP tracker communications
     restart: unless-stopped
 
   portainer:
