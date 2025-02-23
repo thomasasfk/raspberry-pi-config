@@ -19,10 +19,8 @@ async def upload_audio_file(request: Request):
     if not body:
         raise HTTPException(status_code=400, detail="No file uploaded")
 
-    filename = request.headers.get('x-filename', 'audio')
-    unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4()}{os.path.splitext(filename)[1] or '.m4a'}"
+    unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.m4a"
     file_path = os.path.join(UPLOAD_DIR, unique_filename)
-
     with open(file_path, "wb") as buffer:
         buffer.write(body)
 
