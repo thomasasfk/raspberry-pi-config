@@ -26,7 +26,8 @@ sudo systemctl restart smbd nmbd
 
 # Services startup
 tmux has-session -t fastapi 2>/dev/null && tmux kill-session -t fastapi
-tmux new-session -d -s fastapi "uv run --with uvicorn --with python-multipart uvicorn app:app --reload --host 0.0.0.0 --port 7999"
+DEPS="--with uvicorn --with python-multipart --with requests --with python-dotenv"
+tmux new-session -d -s fastapi "uv run $DEPS uvicorn app:app --reload --host 0.0.0.0 --port 7999"
 
 (cd docker && docker-compose up -d)
 

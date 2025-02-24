@@ -11,3 +11,5 @@ backups/*
 .idea
 __pycache__
 www/uploads
+transcriptions.db
+.venv
