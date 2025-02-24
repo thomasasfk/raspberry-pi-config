@@ -30,4 +30,9 @@ tmux new-session -d -s fastapi "uv run --with uvicorn --with python-multipart uv
 
 (cd docker && docker-compose up -d)
 
-tmux has-session -t dev 2>/dev/null && tmux attach -t dev || tmux new-session -s dev
+(crontab -l 2>/dev/null | grep -v "gdrive-repo-sync.py"; echo "*/5 * * * * uv run ~/gdrive-repo-sync/gdrive-repo-sync.py") | crontab -
+
+sudo apt install rclone
+# rclone config (this will need done manually)
+
+# tmux has-session -t dev 2>/dev/null && tmux attach -t dev || tmux new-session -s dev
