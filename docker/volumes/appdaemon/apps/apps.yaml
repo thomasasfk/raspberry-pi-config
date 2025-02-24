@@ -1,0 +1,4 @@
+---
+interactive_shell:
+  module: interactive_shell
+  class: InteractiveShell

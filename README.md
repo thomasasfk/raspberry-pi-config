@@ -13,3 +13,9 @@ Backup volumes before major changes:
 cp -r docker/volumes/* backups/$(date +%Y%m%d)/
 ```
 
+## Attach to AppDaemon hass:
+
+```bash
+docker exec -it appdaemon nc localhost 8888
+```
+
