@@ -1,0 +1,35 @@
+{% extends "base.jinja2" %}
+
+{% block title %}Services{% endblock %}
+
+{% block favicon %}
+    <link rel="icon" type="image/x-icon" href="https://assets.raspberrypi.com/favicon.png">
+{% endblock %}
+
+{% block styles %}
+    <style>
+        .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<h1>Services</h1>
+<div class="grid">
+    {% for name, service in services.items() %}
+    <div class="card">
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem">
+            <img src="{{ service.icon }}" alt="{{ name }}" style="width:24px;height:24px;">
+            <span style="font-size:1.25rem;font-weight:600">{{ name }}</span>
+        </div>
+        <div style="color:var(--text-secondary);margin-bottom:.5rem">{{ service.desc }}</div>
+        <a href="http://{{ service.host }}:{{ service.port }}{{ service.path }}" style="color:var(--accent);display:block;padding:.5rem 0">Open {{ name }}</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

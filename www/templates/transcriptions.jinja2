@@ -1,0 +1,316 @@
+{% extends "base.jinja2" %}
+
+{% block title %}Transcriptions{% endblock %}
+
+{% block favicon %}
+    <link rel="icon" type="image/x-icon" href="https://openai.com/favicon.ico">
+{% endblock %}
+
+{% block styles %}
+<style>
+    /* Copy button styles */
+    .copy-btn {
+        opacity: 0;
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--accent);
+        color: var(--bg);
+        border: none;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        z-index: 10;
+    }
+
+    .open-raw-btn {
+        opacity: 0;
+        position: absolute;
+        right: 60px; /* Position to the left of copy button */
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--accent);
+        color: var(--bg);
+        border: none;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        z-index: 10;
+    }
+
+    .modal-buttons {
+        position: absolute;
+        right: 45px; /* Moved to the right to avoid overlapping with close button */
+        top: 15px;
+        display: flex;
+        gap: 8px;
+    }
+
+    .modal-copy-btn, .modal-open-raw-btn {
+        opacity: 0;
+        background: var(--accent);
+        color: var(--bg);
+        border: none;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+
+    .modal-content:hover .modal-copy-btn,
+    .modal-content:hover .modal-open-raw-btn {
+        opacity: 1;
+    }
+
+    .preview-box {
+        position: relative;
+    }
+
+    .item:hover .copy-btn,
+    .item:hover .open-raw-btn {
+        opacity: 1;
+    }
+
+    /* Make sure gradient doesn't overlap buttons */
+    .preview-box:after {
+        width: 25%;
+    }
+
+    /* Modal sizing */
+    .modal-content {
+        width: 90%;
+        max-width: 600px;
+        margin: 5% auto;
+        padding: 20px;
+        background: var(--card-bg);
+        border-radius: 8px;
+        position: relative;
+    }
+
+    .header-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .back-link {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+
+    .back-link:hover {
+        text-decoration: underline;
+    }
+
+    .upload-form {
+        display: inline-flex;
+        align-items: center;
+        margin-left: auto;
+    }
+
+    .upload-form input {
+        margin-right: 8px;
+    }
+
+    .upload-btn {
+        background: var(--accent);
+        color: var(--bg);
+        border: none;
+        border-radius: 4px;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% macro transcription_item(t) %}
+<div class="item">
+    <div class="item-header">
+        <span>{{ t.filename }}</span>
+        <span style="color:var(--text-secondary);font-size:0.9rem;">{{ t.created_at }}</span>
+    </div>
+    <div class="preview-box">
+        {{ t.transcription or "No transcription available" }}
+        <button class="open-raw-btn" data-filename="{{ t.filename }}">Open Raw</button>
+        <button class="copy-btn" data-content="{{ t.transcription or 'No transcription available' }}">Copy</button>
+    </div>
+    <div class="transcription-details" style="display:none;"
+         data-filename="{{ t.filename }}"
+         data-created="{{ t.created_at }}"
+         data-content="{{ t.transcription or 'No transcription available' }}">
+    </div>
+</div>
+{% endmacro %}
+
+{% block content %}
+<div class="header-row">
+    <a href="/" class="back-link">← Back to Home</a>
+    <div class="upload-form">
+        <input type="file" id="audioFile" accept="audio/*">
+        <button id="uploadBtn" class="upload-btn">Upload & Transcribe</button>
+    </div>
+</div>
+
+<h1>Audio Transcriptions</h1>
+
+<!-- Modal for viewing transcriptions -->
+<div id="transcriptionModal" class="modal" style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;overflow:auto;background-color:rgba(0,0,0,0.4);">
+    <div class="modal-content">
+        <span class="close-modal" style="position:absolute;right:15px;top:10px;font-size:1.5rem;cursor:pointer;">&times;</span>
+        <div class="modal-buttons">
+            <button class="modal-open-raw-btn">Open Raw</button>
+            <button class="modal-copy-btn">Copy</button>
+        </div>
+        <h2 id="modalTitle" style="margin-bottom:1rem;padding-right:40px;"></h2>
+        <div id="modalContent" class="transcription-content"></div>
+    </div>
+</div>
+
+<div class="list">
+    {% if transcriptions %}
+        {% for t in transcriptions %}
+            {{ transcription_item(t) }}
+        {% endfor %}
+    {% else %}
+        <div class="item">No transcriptions available yet</div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('transcriptionModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalContent = document.getElementById('modalContent');
+        const modalCopyBtn = document.querySelector('.modal-copy-btn');
+        const modalOpenRawBtn = document.querySelector('.modal-open-raw-btn');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const audioFileInput = document.getElementById('audioFile');
+
+        // Upload functionality
+        uploadBtn.addEventListener('click', function() {
+            const file = audioFileInput.files[0];
+            if (!file) {
+                alert('Please select an audio file first');
+                return;
+            }
+
+            // Create loading indicator
+            uploadBtn.textContent = 'Uploading...';
+            uploadBtn.disabled = true;
+
+            // Upload file using fetch API
+            fetch('/api/upload-audio?web=1', {
+                method: 'POST',
+                body: file
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    // Reload the page to show the new transcription
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Upload error:', error);
+                alert('Upload failed: ' + error);
+                uploadBtn.textContent = 'Upload & Transcribe';
+                uploadBtn.disabled = false;
+            });
+        });
+
+        // Modal and copy functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('close-modal') || e.target === modal) {
+                modal.style.display = 'none';
+            }
+
+            if (e.target.closest('.item')) {
+                const item = e.target.closest('.item');
+                const details = item.querySelector('.transcription-details');
+                if (details && !e.target.classList.contains('copy-btn') && !e.target.classList.contains('open-raw-btn')) {
+                    openTranscriptionModal(
+                        details.dataset.filename,
+                        details.dataset.created,
+                        details.dataset.content
+                    );
+                }
+            }
+
+            if (e.target.classList.contains('view-transcription')) {
+                e.preventDefault();
+                const filename = e.target.dataset.filename;
+                const details = document.querySelector(`.transcription-details[data-filename="${filename}"]`);
+                if (details) {
+                    openTranscriptionModal(
+                        details.dataset.filename,
+                        details.dataset.created,
+                        details.dataset.content
+                    );
+                }
+            }
+
+            if (e.target.classList.contains('copy-btn')) {
+                copyToClipboard(e.target.dataset.content);
+                showCopyFeedback(e.target);
+            }
+
+            if (e.target === modalCopyBtn) {
+                copyToClipboard(modalContent.textContent);
+                showCopyFeedback(modalCopyBtn);
+            }
+
+            if (e.target.classList.contains('open-raw-btn')) {
+                const filename = e.target.dataset.filename ||
+                                modalTitle.textContent.split(' (')[0];
+                openRawAudio(filename);
+            }
+
+            if (e.target === modalOpenRawBtn) {
+                const filename = modalTitle.textContent.split(' (')[0];
+                openRawAudio(filename);
+            }
+        });
+
+        function openTranscriptionModal(filename, created, content) {
+            modalTitle.textContent = `${filename} (${created})`;
+            modalContent.textContent = content;
+            modal.style.display = 'block';
+            modalCopyBtn.dataset.content = content;
+            modalOpenRawBtn.dataset.filename = filename;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).catch(err => {
+                console.error('Could not copy text: ', err);
+            });
+        }
+
+        function openRawAudio(filename) {
+            // Open the raw audio file in a new tab using dynamic URL generation
+            // Get the current origin (protocol + hostname + port)
+            const origin = window.location.origin;
+            const rawUrl = `${origin}/static/uploads/${filename}`;
+            window.open(rawUrl, '_blank');
+        }
+
+        function showCopyFeedback(button) {
+            const originalText = button.textContent;
+            button.textContent = 'Copied!';
+            button.style.backgroundColor = '#2ecc71';
+
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.backgroundColor = '';
+            }, 1500);
+        }
+    });
+</script>
+{% endblock %}

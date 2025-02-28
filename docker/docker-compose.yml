@@ -1,4 +1,3 @@
-version: '3'
 services:
   homeassistant:
     container_name: homeassistant
@@ -7,39 +6,43 @@ services:
     restart: unless-stopped
     environment:
       - TZ=${TZ:-UTC}
+#      - PYTHONPATH=/usr/src/homeassistant
+#      - PYTHONARGS=-Xfrozen_modules=off
     volumes:
-      - ./volumes/homeassistant:/config
+      - /home/thomas/raspberry-pi-config/docker/volumes/homeassistant:/config
+      - /home/thomas/dev/core:/usr/src/homeassistant
     ports:
       - "8000:8123"  # Home Assistant web interface
+      - "5678:5678"  # Debug port
 
-  appdaemon:
-    container_name: appdaemon
-    image: acockburn/appdaemon:latest
-    restart: unless-stopped
-    depends_on:
-      - homeassistant
-    environment:
-      - TZ=${TZ:-UTC}
-      - HA_URL=http://homeassistant:8123
-      - TOKEN=${LONG_LIVE_HA_TOKEN}
-      - DASH_URL=http://appdaemon:5050
-    volumes:
-      - ./volumes/appdaemon/conf:/conf
-      - ./volumes/appdaemon/apps:/apps
-    ports:
-      - "8012:5050"  # AppDaemon web interface (Dashboard)
+#  appdaemon:
+#    container_name: appdaemon
+#    image: acockburn/appdaemon:latest
+#    restart: unless-stopped
+#    depends_on:
+#      - homeassistant
+#    environment:
+#      - TZ=${TZ:-UTC}
+#      - HA_URL=http://homeassistant:8123
+#      - TOKEN=${LONG_LIVE_HA_TOKEN}
+#      - DASH_URL=http://appdaemon:5050
+#    volumes:
+#      - ./volumes/appdaemon/conf:/conf
+#      - ./volumes/appdaemon/apps:/apps
+#    ports:
+#      - "8012:5050"  # AppDaemon web interface (Dashboard)
 
-  octoprint:
-    container_name: octoprint
-    image: octoprint/octoprint
-    restart: unless-stopped
-    environment:
-      - ENABLE_MJPG_STREAMER=true
-    volumes:
-      - ./volumes/octoprint:/octoprint
-    ports:
-      - "8001:5000"  # OctoPrint web interface
-      - "8002:8080"  # MJPG-Streamer (if enabled)
+#  octoprint:
+#    container_name: octoprint
+#    image: octoprint/octoprint
+#    restart: unless-stopped
+#    environment:
+#      - ENABLE_MJPG_STREAMER=true
+#    volumes:
+#      - ./volumes/octoprint:/octoprint
+#    ports:
+#      - "8001:5000"  # OctoPrint web interface
+#      - "8002:8080"  # MJPG-Streamer (if enabled)
 
   pihole:
     container_name: pihole
