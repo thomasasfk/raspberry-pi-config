@@ -7,10 +7,19 @@
 [ -z "$PASSWORD" ] && read -sp "Enter password for network share: " PASSWORD && \
     echo && echo "PASSWORD=$PASSWORD" >> .env
 
-# System setup
-sudo apt update && sudo apt install -y git docker.io docker-compose tmux samba samba-common-bin jq
-wget -qO- https://astral.sh/uv/install.sh | sh
-sudo usermod -aG docker $USER && . ~/.bashrc
+# Installations
+for pkg in git docker.io docker-compose tmux samba samba-common-bin jq; do
+    dpkg -l | grep -q "ii  $pkg" || sudo apt install -y $pkg
+done
+
+if ! command -v uv &> /dev/null; then
+    wget -qO- https://astral.sh/uv/install.sh | sh
+fi
+
+if ! groups $USER | grep -q docker; then
+    sudo usermod -aG docker $USER
+    echo "Added $USER to docker group. You may need to log out and back in for this to take effect."
+fi
 
 # Samba setup
 if ! grep -q "^\[homes\]" /etc/samba/smb.conf; then
@@ -21,13 +30,19 @@ if ! grep -q "^\[homes\]" /etc/samba/smb.conf; then
    directory mask = 0755
 EOL
 fi
-echo -e "$PASSWORD\n$PASSWORD" | sudo smbpasswd -s -a $USER
 sudo systemctl restart smbd nmbd
 
-# Services startup
-tmux has-session -t fastapi 2>/dev/null && tmux kill-session -t fastapi
+# Service startup
 DEPS="--with uvicorn --with jinja2 --with python-multipart --with requests --with python-dotenv"
 tmux new-session -d -s fastapi "uv run $DEPS uvicorn app:app --reload --host 0.0.0.0 --port 7999"
-
 (cd docker && docker-compose up -d)
 
+# Setup startup services
+FASTAPI_PATH="$(which uv) run $DEPS uvicorn app:app --reload --host 0.0.0.0 --port 7999"
+CRON_CMD="@reboot tmux new-session -d -s fastapi \"$FASTAPI_PATH\""
+DOCKER_CMD="@reboot cd $(pwd)/docker && $(which docker-compose) up -d"
+
+# Generate new crontab with our entries, removing any old versions
+CURRENT_CRONTAB=$(crontab -l 2>/dev/null || echo "")
+NEW_CRONTAB=$(echo "$CURRENT_CRONTAB" | grep -v "tmux new-session -d -s fastapi" | grep -v "docker-compose up -d")
+echo -e "$NEW_CRONTAB\n$CRON_CMD\n$DOCKER_CMD" | sort | uniq | crontab -

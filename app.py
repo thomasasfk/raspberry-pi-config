@@ -6,8 +6,8 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
-from fastapi import FastAPI, Request, HTTPException, UploadFile, File
+from fastapi.responses import HTMLResponse, FileResponse
+from fastapi import FastAPI, Request, HTTPException
 from starlette.templating import Jinja2Templates
 from dotenv import load_dotenv
 
@@ -16,6 +16,7 @@ load_dotenv()
 app = FastAPI()
 
 templates = Jinja2Templates(directory="www/templates")
+templates.env.filters['format_date'] = lambda date_str: datetime.fromisoformat(date_str.replace('Z', '+00:00')).strftime('%m/%d/%Y at %H:%M:%S')
 
 UPLOAD_DIR = "www/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)

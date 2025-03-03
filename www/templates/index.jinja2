@@ -6,30 +6,20 @@
     <link rel="icon" type="image/x-icon" href="https://assets.raspberrypi.com/favicon.png">
 {% endblock %}
 
-{% block styles %}
-    <style>
-        .card {
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        }
-        .card:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-    </style>
-{% endblock %}
-
 {% block content %}
-<h1>Services</h1>
-<div class="grid">
+<h1 class="text-2xl font-bold text-center mb-6">Services</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     {% for name, service in services.items() %}
-    <div class="card">
-        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem">
-            <img src="{{ service.icon }}" alt="{{ name }}" style="width:24px;height:24px;">
-            <span style="font-size:1.25rem;font-weight:600">{{ name }}</span>
+    <a href="http://{{ service.host }}:{{ service.port }}{{ service.path }}"
+       class="bg-[var(--card-bg)] rounded-lg p-4 transition hover:-translate-y-1 hover:shadow-md">
+        <div class="flex items-center gap-3 mb-2">
+            <img src="{{ service.icon }}" alt="{{ name }}" class="w-6 h-6">
+            <span class="text-lg font-semibold">{{ name }}</span>
         </div>
-        <div style="color:var(--text-secondary);margin-bottom:.5rem">{{ service.desc }}</div>
-        <a href="http://{{ service.host }}:{{ service.port }}{{ service.path }}" style="color:var(--accent);display:block;padding:.5rem 0">Open {{ name }}</a>
-    </div>
+        <div class="text-[var(--text-secondary)] mb-3">{{ service.desc }}</div>
+        <div class="text-[var(--accent)] mt-2">Open {{ name }} →</div>
+    </a>
     {% endfor %}
 </div>
 {% endblock %}
