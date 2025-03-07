@@ -1,109 +1,23 @@
-- id: "simplified_morning_wakeup_lighting_sequence"
-  alias: "Simplified Morning Wake-Up Lighting Sequence"
-  description: "Gradual wake-up lighting sequence from 8:00 AM to 9:00 AM"
+- id: simplified_morning_wakeup_lighting_sequence
+  alias: Simplified Morning Wake-Up Lighting Sequence
+  description: Gradual wake-up lighting sequence from 8:00 AM to 9:00 AM
   triggers:
-    - platform: time
-      at: "08:00:00"
+  - at: 08:35:00
+    trigger: time
   actions:
-    # Initial turn on at 8:00 AM
-    - service: light.turn_on
-      target:
-        entity_id: light.smart_light_24041085050865591001c4e7ae030df0
-      data:
-        brightness: 1
-        color_temp_kelvin: 3000
-        transition: 2700
-
-    # Wait for initial turn-on to complete
-    - delay: "00:00:05"
-
-    # 8:00-8:45 - Gradual increase from 1 to 200
-    - service: light.turn_on
-      target:
-        entity_id: light.smart_light_24041085050865591001c4e7ae030df0
-      data:
-        brightness: 200
-        color_temp_kelvin: 4500
-        transition: 2700
-
-    # Wait for transition to complete (45 minutes)
-    - delay: "00:45:00"
-
-    # 8:45 - Turn on bedroom light to match smart light
-    - service: light.turn_on
-      target:
-        entity_id: light.bed_room
-      data:
-        brightness: 200
-        color_temp_kelvin: 4500
-        transition: 900
-
-    # Wait for bedroom light to turn on
-    - delay: "00:00:05"
-
-    # 8:45-9:00 - Both lights transition to full brightness
-    - service: light.turn_on
-      target:
-        entity_id:
-          - light.bed_room
-          - light.smart_light_24041085050865591001c4e7ae030df0
-      data:
-        brightness: 255
-        color_temp_kelvin: 6500
-        transition: 900
-  mode: single
-
-- id: "test_lighting_sequence"
-  alias: "Test Lighting Sequence"
-  description: "Test sequence - condensed version of morning wake-up (2 minutes total)"
-  triggers:
-    - platform: time
-      at: "08:00:00"
-  actions:
-    # Initial turn on at 8:00 AM
-    - service: light.turn_on
-      target:
-        entity_id: light.smart_light_24041085050865591001c4e7ae030df0
-      data:
-        brightness: 1
-        color_temp_kelvin: 3000
-        transition: 60
-
-    # Wait for initial turn-on to complete
-    - delay: "00:00:05"
-
-    # 8:00-8:01 - Gradual increase from 1 to 200 (in 1 minute)
-    - service: light.turn_on
-      target:
-        entity_id: light.smart_light_24041085050865591001c4e7ae030df0
-      data:
-        brightness: 200
-        color_temp_kelvin: 4500
-        transition: 60
-
-    # Wait for transition to complete (1 minute)
-    - delay: "00:01:00"
-
-    # 8:01 - Turn on bedroom light to match smart light
-    - service: light.turn_on
-      target:
-        entity_id: light.bed_room
-      data:
-        brightness: 200
-        color_temp_kelvin: 4500
-        transition: 60
-
-    # Wait for bedroom light to turn on
-    - delay: "00:00:05"
-
-    # 8:01-8:02 - Both lights transition to full brightness (in 1 minute)
-    - service: light.turn_on
-      target:
-        entity_id:
-          - light.bed_room
-          - light.smart_light_24041085050865591001c4e7ae030df0
-      data:
-        brightness: 255
-        color_temp_kelvin: 6500
-        transition: 60
+  - target:
+      entity_id: light.smart_light_24041085050865591001c4e7ae030df0
+    data:
+      brightness: 1
+      color_temp_kelvin: 3000
+      transition: 1500
+    action: light.turn_on
+  - delay: 00:00:05
+  - target:
+      entity_id: light.smart_light_24041085050865591001c4e7ae030df0
+    data:
+      brightness: 150
+      color_temp_kelvin: 3000
+      transition: 1500
+    action: light.turn_on
   mode: single
