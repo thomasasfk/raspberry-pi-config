@@ -30,19 +30,69 @@ if ! grep -q "^\[homes\]" /etc/samba/smb.conf; then
    directory mask = 0755
 EOL
 fi
+# Ensure Samba services are enabled and restarted
+sudo systemctl enable smbd nmbd
 sudo systemctl restart smbd nmbd
 
-# Service startup
+# Create systemd service for FastAPI
+FASTAPI_SERVICE="fastapi-app.service"
 DEPS="--with uvicorn --with jinja2 --with python-multipart --with requests --with python-dotenv"
-tmux new-session -d -s fastapi "uv run $DEPS uvicorn app:app --reload --host 0.0.0.0 --port 7999"
-(cd docker && docker-compose up -d)
-
-# Setup startup services
 FASTAPI_PATH="$(which uv) run $DEPS uvicorn app:app --reload --host 0.0.0.0 --port 7999"
-CRON_CMD="@reboot tmux new-session -d -s fastapi \"$FASTAPI_PATH\""
-DOCKER_CMD="@reboot cd $(pwd)/docker && $(which docker-compose) up -d"
+PROJECT_DIR="/home/$USER/raspberry-pi-config"
 
-# Generate new crontab with our entries, removing any old versions
-CURRENT_CRONTAB=$(crontab -l 2>/dev/null || echo "")
-NEW_CRONTAB=$(echo "$CURRENT_CRONTAB" | grep -v "tmux new-session -d -s fastapi" | grep -v "docker-compose up -d")
-echo -e "$NEW_CRONTAB\n$CRON_CMD\n$DOCKER_CMD" | sort | uniq | crontab -
+sudo tee /etc/systemd/system/$FASTAPI_SERVICE > /dev/null << EOL
+[Unit]
+Description=FastAPI Application
+After=network.target
+
+[Service]
+Type=simple
+User=$USER
+WorkingDirectory=$PROJECT_DIR
+ExecStart=$FASTAPI_PATH
+Restart=always
+RestartSec=5
+Environment="PATH=$PATH"
+EnvironmentFile=$PROJECT_DIR/.env
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+# Create systemd service for Docker Compose
+DOCKER_COMPOSE_SERVICE="docker-compose-app.service"
+DOCKER_DIR="/home/$USER/raspberry-pi-config/docker"
+
+sudo tee /etc/systemd/system/$DOCKER_COMPOSE_SERVICE > /dev/null << EOL
+[Unit]
+Description=Docker Compose Application
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=$USER
+WorkingDirectory=$DOCKER_DIR
+ExecStart=$(which docker-compose) up
+ExecStop=$(which docker-compose) down
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+# Enable and start the services
+sudo systemctl daemon-reload
+sudo systemctl enable $FASTAPI_SERVICE
+sudo systemctl enable $DOCKER_COMPOSE_SERVICE
+sudo systemctl start $FASTAPI_SERVICE
+sudo systemctl start $DOCKER_COMPOSE_SERVICE
+
+echo "Services installed and started. Check status with:"
+echo "  sudo systemctl status $FASTAPI_SERVICE"
+echo "  sudo systemctl status $DOCKER_COMPOSE_SERVICE"
+echo ""
+echo "View logs with:"
+echo "  sudo journalctl -u $FASTAPI_SERVICE -f"
+echo "  sudo journalctl -u $DOCKER_COMPOSE_SERVICE -f"

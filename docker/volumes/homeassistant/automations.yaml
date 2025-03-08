@@ -2,7 +2,7 @@
   alias: Simplified Morning Wake-Up Lighting Sequence
   description: Gradual wake-up lighting sequence from 8:00 AM to 9:00 AM
   triggers:
-  - at: 08:35:00
+  - at: 07:45:00
     trigger: time
   actions:
   - target:

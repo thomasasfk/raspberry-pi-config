@@ -93,34 +93,6 @@ async def index(request: Request):
             "host": "raspberrypi.local",
             "path": ""
         },
-        # "AppDaemon": {
-        #     "icon": "http://raspberrypi.local:8012/aui/favicon.ico",
-        #     "port": 8012,
-        #     "desc": "AppDaemon service",
-        #     "host": "raspberrypi.local",
-        #     "path": ""
-        # },
-        # "OctoPrint": {
-        #     "icon": "https://raw.githubusercontent.com/OctoPrint/OctoPrint/master/src/octoprint/static/img/logo.png",
-        #     "port": 8001,
-        #     "desc": "3D printer management",
-        #     "host": "raspberrypi.local",
-        #     "path": ""
-        # },
-        "Pi-hole": {
-            "icon": "https://pi-hole.github.io/graphics/Vortex/Vortex.png",
-            "port": 8003,
-            "desc": "Network-wide ad blocking",
-            "host": "raspberrypi.local",
-            "path": "/admin/login"
-        },
-        "ruTorrent": {
-            "icon": "http://raspberrypi.local:8005/images/favicon.ico",
-            "port": 8005,
-            "desc": "Torrent client web interface",
-            "host": "raspberrypi.local",
-            "path": ""
-        },
         "Portainer": {
             "icon": "https://raw.githubusercontent.com/portainer/portainer/develop/app/assets/ico/favicon.ico",
             "port": 8008,
@@ -138,7 +110,7 @@ async def index(request: Request):
     }
 
     return templates.TemplateResponse(
-        "index.jinja2",
+        "index.j2",
         {"services": services,
          "request": request}
     )
@@ -149,9 +121,8 @@ async def index(request: Request):
 async def transcriptions_page(
         request: Request, message: Optional[str] = None, success: bool = True, filename: Optional[str] = None
 ):
-    transcriptions = get_all_transcriptions()
     return templates.TemplateResponse(
-        "transcriptions.jinja2",
+        "transcriptions.j2",
         {"transcriptions": get_all_transcriptions(),
          "selected_transcription": None,
          "message": message,
