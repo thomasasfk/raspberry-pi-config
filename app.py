@@ -110,7 +110,7 @@ async def index(request: Request):
     }
 
     return templates.TemplateResponse(
-        "index.j2",
+        "index.html.j2",
         {"services": services,
          "request": request}
     )
@@ -122,7 +122,7 @@ async def transcriptions_page(
         request: Request, message: Optional[str] = None, success: bool = True, filename: Optional[str] = None
 ):
     return templates.TemplateResponse(
-        "transcriptions.j2",
+        "transcriptions.html.j2",
         {"transcriptions": get_all_transcriptions(),
          "selected_transcription": None,
          "message": message,
